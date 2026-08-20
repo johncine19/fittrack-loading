@@ -489,24 +489,30 @@
             setProgress(visualPct);
 
             try {
-                // Ping with no-cors to avoid CORS errors. We only care about
-                // whether the request succeeds (server responded), not the body.
+                // Ping the health endpoint with CORS — this returns a specific
+                // JSON response only when the real PHP app is serving, NOT
+                // when Render's proxy is showing the cold-start screen.
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), PING_INTERVAL - 500);
 
-                const response = await fetch(RENDER_APP_URL + '/index.php?page=landing', {
-                    method: 'HEAD',
-                    mode: 'no-cors',
+                const response = await fetch(RENDER_APP_URL + '/health.php', {
+                    method: 'GET',
+                    mode: 'cors',
                     cache: 'no-store',
                     signal: controller.signal,
                 });
                 clearTimeout(timeout);
 
-                // If we get here, the server responded (even opaque response means it's alive)
-                completeAllSteps();
-                clearInterval(pingTimer);
-                setTimeout(redirectToApp, REDIRECT_DELAY);
-                return;
+                // Verify we got the real app response, not Render's proxy
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.status === 'ok') {
+                        completeAllSteps();
+                        clearInterval(pingTimer);
+                        setTimeout(redirectToApp, REDIRECT_DELAY);
+                        return;
+                    }
+                }
 
             } catch (err) {
                 // Server not ready yet — continue pinging
