@@ -262,8 +262,10 @@
         .tip {
             position: fixed;
             bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 0 24px;
             font-family: var(--font-mono);
             font-size: 11px;
             color: var(--muted);
@@ -271,7 +273,6 @@
             letter-spacing: 0.05em;
             animation: fade-in 1s ease 3s both;
             text-align: center;
-            max-width: 320px;
         }
 
         /* ── Animations ──────────────────────────────────── */
